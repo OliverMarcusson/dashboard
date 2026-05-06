@@ -1,0 +1,9 @@
+dash.olivermarcusson.se {
+    # If this hostname is Tailnet-only and public ACME cannot reach it,
+    # configure DNS-01 in your host Caddy build instead.
+    # tls {
+    #     dns cloudflare {$CLOUDFLARE_API_TOKEN}
+    # }
+
+    reverse_proxy 127.0.0.1:13000
+}

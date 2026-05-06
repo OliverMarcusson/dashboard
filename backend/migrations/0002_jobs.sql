@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS jobs (
+  id TEXT PRIMARY KEY,
+  action_id TEXT NOT NULL,
+  status TEXT NOT NULL,
+  started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finished_at TEXT,
+  exit_code INTEGER,
+  stdout TEXT NOT NULL DEFAULT '',
+  stderr TEXT NOT NULL DEFAULT ''
+);

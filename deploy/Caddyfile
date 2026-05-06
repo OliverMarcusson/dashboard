@@ -1,0 +1,8 @@
+dash.olivermarcusson.se {
+    # If public HTTP-01 challenges cannot reach this host, configure DNS-01 here.
+    # tls {
+    #     dns cloudflare {$CLOUDFLARE_API_TOKEN}
+    # }
+
+    reverse_proxy 127.0.0.1:3000
+}
