@@ -84,6 +84,7 @@ const ACTIONS: &[ActionSpec] = &[
     ActionSpec { id:"service.start.wol-wol-http-1", label:"Start Wake-on-LAN HTTP", danger:"normal", confirmation:None },
     ActionSpec { id:"service.stop.wol-wol-http-1", label:"Stop Wake-on-LAN HTTP", danger:"high", confirmation:Some("stop wol-wol-http-1") },
     ActionSpec { id:"service.restart.wol-wol-http-1", label:"Restart Wake-on-LAN HTTP", danger:"high", confirmation:Some("restart wol-wol-http-1") },
+    ActionSpec { id:"wol.wake.pc", label:"Wake PC", danger:"normal", confirmation:None },
     ActionSpec { id:"service.start.edge-caddy-1", label:"Start Caddy ingress", danger:"normal", confirmation:None },
     ActionSpec { id:"service.stop.edge-caddy-1", label:"Stop Caddy ingress", danger:"high", confirmation:Some("stop edge-caddy-1") },
     ActionSpec { id:"service.restart.edge-caddy-1", label:"Restart Caddy ingress", danger:"high", confirmation:Some("restart edge-caddy-1") },

@@ -170,6 +170,7 @@ async fn run_action(State(st): State<AgentState>, headers: HeaderMap, Path(id): 
         "service.start.wol-wol-http-1" => docker_container("start", "wol-wol-http-1", 30).await,
         "service.stop.wol-wol-http-1" => docker_container("stop", "wol-wol-http-1", 30).await,
         "service.restart.wol-wol-http-1" => docker_container("restart", "wol-wol-http-1", 30).await,
+        "wol.wake.pc" => wol_wake().await,
         "service.start.edge-caddy-1" => docker_container("start", "edge-caddy-1", 30).await,
         "service.stop.edge-caddy-1" => docker_container("stop", "edge-caddy-1", 30).await,
         "service.restart.edge-caddy-1" => docker_container("restart", "edge-caddy-1", 30).await,
@@ -211,6 +212,21 @@ async fn run_action(State(st): State<AgentState>, headers: HeaderMap, Path(id): 
 
 async fn systemctl(action: &str, unit: &str, timeout_secs: u64) -> CmdOut { cmd("systemctl", &[action, unit], None, timeout_secs).await }
 async fn docker_container(action: &str, name: &str, timeout_secs: u64) -> CmdOut { cmd("docker", &[action, name], None, timeout_secs).await }
+async fn wol_wake() -> CmdOut {
+    let url = std::env::var("WOL_HTTP_URL").unwrap_or_else(|_| "http://127.0.0.1:8765/wake".into());
+    let Some(token) = read_secret("WOL_AUTH_TOKEN", "WOL_AUTH_TOKEN_FILE").or_else(|| read_dotenv_secret("/srv/compose/wol/.env", "WOL_AUTH_TOKEN")) else {
+        return CmdOut { exit_code: -1, stdout: String::new(), stderr: "WOL_AUTH_TOKEN not configured".into() };
+    };
+    match timeout(Duration::from_secs(15), reqwest::Client::new().post(&url).bearer_auth(token).send()).await {
+        Ok(Ok(res)) => {
+            let status = res.status();
+            let text = res.text().await.unwrap_or_default();
+            CmdOut { exit_code: if status.is_success() { 0 } else { status.as_u16() as i32 }, stdout: text, stderr: if status.is_success() { String::new() } else { format!("WOL endpoint returned {status}") } }
+        }
+        Ok(Err(e)) => CmdOut { exit_code: -1, stdout: String::new(), stderr: e.to_string() },
+        Err(_) => CmdOut { exit_code: -1, stdout: String::new(), stderr: "timed out after 15s".into() },
+    }
+}
 async fn arkctl(args: &[&str], stdin: Option<&str>, timeout_secs: u64) -> CmdOut { cmd_input("./arkctl.py", args, Some("/srv/compose/ark"), stdin, timeout_secs).await }
 fn required_param(params: &JsonValue, key: &str) -> Result<String, AgentError> { params.get(key).and_then(JsonValue::as_str).map(str::trim).filter(|s| !s.is_empty()).map(str::to_string).ok_or(AgentError::BadRequest) }
 fn param_bool(params: &JsonValue, key: &str) -> bool { params.get(key).and_then(JsonValue::as_bool).unwrap_or(false) }
@@ -226,6 +242,7 @@ fn parse_mem(mem: &str) -> Value { let mut total=0; let mut available=0; for lin
 fn parse_df(df: &str) -> Value { let line=df.lines().nth(1).unwrap_or(""); let p: Vec<_>=line.split_whitespace().collect(); json!({"size":p.get(1).unwrap_or(&""),"used":p.get(2).unwrap_or(&""),"available":p.get(3).unwrap_or(&""),"used_percent":p.get(4).unwrap_or(&"")}) }
 fn strip_ansi(s: &str) -> String { let mut out=String::with_capacity(s.len()); let mut it=s.chars().peekable(); while let Some(c)=it.next() { if c=='\u{1b}' && it.peek()==Some(&'[') { it.next(); for ch in it.by_ref() { if ch.is_ascii_alphabetic() { break; } } } else { out.push(c); } } out }
 fn read_secret(env: &str, file_env: &str) -> Option<String> { std::env::var(env).ok().or_else(|| std::env::var(file_env).ok().and_then(|p| std::fs::read_to_string(p).ok())).map(|s| s.trim().to_string()).filter(|s| !s.is_empty()) }
+fn read_dotenv_secret(path: &str, key: &str) -> Option<String> { std::fs::read_to_string(path).ok()?.lines().find_map(|line| { let line=line.trim(); let (k,v)=line.split_once('=')?; (k.trim()==key).then(|| v.trim().trim_matches('"').trim_matches('\'').to_string()) }).filter(|s| !s.is_empty()) }
 #[derive(Debug)] enum AgentError { Unauthorized, NotFound, BadRequest }
 impl IntoResponse for AgentError { fn into_response(self) -> axum::response::Response { match self { AgentError::Unauthorized => (StatusCode::UNAUTHORIZED, Json(json!({"error":"unauthorized"}))).into_response(), AgentError::NotFound => (StatusCode::NOT_FOUND, Json(json!({"error":"not_found"}))).into_response(), AgentError::BadRequest => (StatusCode::BAD_REQUEST, Json(json!({"error":"bad_request"}))).into_response() } } }
 
