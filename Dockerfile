@@ -30,7 +30,7 @@ COPY --from=frontend /src/frontend/dist ../frontend/dist
 USER dashboard
 ENV DASHBOARD_BIND=0.0.0.0:3000 \
     DASHBOARD_DATABASE_URL=sqlite:///data/dashboard.sqlite?mode=rwc \
-    DASHBOARD_RP_ID=dash.olivermarcusson.se \
-    DASHBOARD_ORIGIN=https://dash.olivermarcusson.se
+    DASHBOARD_RP_ID=dash.marcusson.dev \
+    DASHBOARD_ORIGIN=https://dash.marcusson.dev
 EXPOSE 3000
 CMD ["/usr/local/bin/dashboardd"]

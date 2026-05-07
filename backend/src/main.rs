@@ -128,8 +128,8 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().with_env_filter("info,tower_http=info").init();
     let db_url = std::env::var("DASHBOARD_DATABASE_URL").unwrap_or_else(|_| "sqlite://dashboard.sqlite?mode=rwc".into());
     let bind = std::env::var("DASHBOARD_BIND").unwrap_or_else(|_| "127.0.0.1:3000".into());
-    let rp_id = std::env::var("DASHBOARD_RP_ID").unwrap_or_else(|_| "dash.olivermarcusson.se".into());
-    let origin = std::env::var("DASHBOARD_ORIGIN").unwrap_or_else(|_| "https://dash.olivermarcusson.se".into());
+    let rp_id = std::env::var("DASHBOARD_RP_ID").unwrap_or_else(|_| "dash.marcusson.dev".into());
+    let origin = std::env::var("DASHBOARD_ORIGIN").unwrap_or_else(|_| "https://dash.marcusson.dev".into());
     let pool = SqlitePoolOptions::new().max_connections(5).connect(&db_url).await?;
     sqlx::migrate!("./migrations").run(&pool).await?;
     backfill_credential_ids(&pool).await;

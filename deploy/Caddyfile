@@ -1,4 +1,4 @@
-dash.olivermarcusson.se {
+dash.marcusson.dev {
     # If public HTTP-01 challenges cannot reach this host, configure DNS-01 here.
     # tls {
     #     dns cloudflare {$CLOUDFLARE_API_TOKEN}

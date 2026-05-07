@@ -5,13 +5,13 @@ Private passkey-only server dashboard.
 - Backend: Rust + Axum + SQLite + webauthn-rs
 - Host agent: Rust + Axum, bound to Docker bridge `172.17.0.1:13001` with bearer-token auth
 - Frontend: React + Vite + Tailwind
-- Deployment: host Caddy on `dash.olivermarcusson.se`, app published on `127.0.0.1:13000`
+- Deployment: host Caddy on `dash.marcusson.dev`, app published on `127.0.0.1:13000`
 
 ## Bootstrap auth
 
 ```bash
 dashctl enroll
-# open https://dash.olivermarcusson.se/enroll and enter the one-time code
+# open https://dash.marcusson.dev/enroll and enter the one-time code
 ```
 
 The code only authorizes WebAuthn registration. The browser/password manager, e.g. Proton Pass, creates and stores the passkey.
@@ -32,9 +32,9 @@ Generate a passkey enrollment code inside the dashboard container:
 docker compose exec dashboard dashctl enroll
 ```
 
-Then open `https://dash.olivermarcusson.se/enroll`.
+Then open `https://dash.marcusson.dev/enroll`.
 
-The dashboard container publishes only `127.0.0.1:13000` on the host. Management APIs require a passkey-backed session; the host agent also requires the shared bearer token. This server already has host Caddy on ports 80/443, so the live edge Caddy proxies `dash.olivermarcusson.se` to `127.0.0.1:13000`. The hostname is public via Cloudflare DDNS.
+The dashboard container publishes only `127.0.0.1:13000` on the host. Management APIs require a passkey-backed session; the host agent also requires the shared bearer token. This server already has host Caddy on ports 80/443, so the live edge Caddy proxies `dash.marcusson.dev` to `127.0.0.1:13000`. The hostname is public via Cloudflare DDNS.
 
 If deploying on a host without existing Caddy, use the optional Compose Caddy profile:
 

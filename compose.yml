@@ -7,8 +7,8 @@ services:
     environment:
       DASHBOARD_BIND: 0.0.0.0:3000
       DASHBOARD_DATABASE_URL: sqlite:///data/dashboard.sqlite?mode=rwc
-      DASHBOARD_RP_ID: dash.olivermarcusson.se
-      DASHBOARD_ORIGIN: https://dash.olivermarcusson.se
+      DASHBOARD_RP_ID: dash.marcusson.dev
+      DASHBOARD_ORIGIN: https://dash.marcusson.dev
       DASHBOARD_AGENT_URL: http://host.docker.internal:13001
       DASHBOARD_AGENT_TOKEN_FILE: /run/secrets/dashboard-agent-token
     extra_hosts:
@@ -39,7 +39,7 @@ services:
       - "443:443"
       - "80:80"
     environment:
-      DASHBOARD_DOMAIN: dash.olivermarcusson.se
+      DASHBOARD_DOMAIN: dash.marcusson.dev
       # CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
     volumes:
       - ./deploy/Caddyfile.compose:/etc/caddy/Caddyfile:ro

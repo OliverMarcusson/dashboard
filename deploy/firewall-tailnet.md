@@ -16,13 +16,13 @@ If SSH is managed separately, do not change that policy blindly.
 Verification from outside Tailnet:
 
 ```bash
-curl -I https://dash.olivermarcusson.se
+curl -I https://dash.marcusson.dev
 # should fail or time out
 ```
 
 Verification from inside Tailnet:
 
 ```bash
-curl -I https://dash.olivermarcusson.se
+curl -I https://dash.marcusson.dev
 # should return Caddy/dashboard response
 ```

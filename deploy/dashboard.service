@@ -10,8 +10,8 @@ Group=dashboard
 WorkingDirectory=/opt/oliver-dashboard/backend
 Environment=DASHBOARD_BIND=127.0.0.1:3000
 Environment=DASHBOARD_DATABASE_URL=sqlite:///var/lib/oliver-dashboard/dashboard.sqlite?mode=rwc
-Environment=DASHBOARD_RP_ID=dash.olivermarcusson.se
-Environment=DASHBOARD_ORIGIN=https://dash.olivermarcusson.se
+Environment=DASHBOARD_RP_ID=dash.marcusson.dev
+Environment=DASHBOARD_ORIGIN=https://dash.marcusson.dev
 ExecStart=/usr/local/bin/dashboardd
 Restart=on-failure
 RestartSec=3

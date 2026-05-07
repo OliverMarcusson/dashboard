@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
             let exp = (Utc::now() + Duration::minutes(ttl_minutes)).to_rfc3339();
             sqlx::query("INSERT INTO enrollment_codes(id,code_hash,expires_at) VALUES(?,?,?)")
                 .bind(Uuid::new_v4().to_string()).bind(hash).bind(exp).execute(&db).await?;
-            println!("Enrollment code:\n\n  {}\n\nOpen:\n\n  https://dash.olivermarcusson.se/enroll\n\nExpires in {} minutes.", code, ttl_minutes);
+            println!("Enrollment code:\n\n  {}\n\nOpen:\n\n  https://dash.marcusson.dev/enroll\n\nExpires in {} minutes.", code, ttl_minutes);
         }
         Command::ListPasskeys => {
             let rows: Vec<(String,String,String,Option<String>)> = sqlx::query_as("SELECT id,name,created_at,last_used_at FROM passkeys ORDER BY created_at")
