@@ -12,6 +12,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	_ "modernc.org/sqlite"
 )
 
@@ -40,6 +41,36 @@ type rsPasskey struct {
 type Credential struct {
 	Name string
 	Cred webauthn.Credential
+}
+
+// UserHandle returns the WebAuthn user handle the old dashboard registered its
+// passkeys against.
+//
+// webauthn-rs takes a UUID and uses its sixteen raw bytes as the handle. An
+// authenticator stored that value with the credential and returns it on every
+// assertion, so the rewrite has to adopt it — the credentials are useless
+// under any other identity.
+func UserHandle(ctx context.Context, path string) ([]byte, error) {
+	db, err := sql.Open("sqlite", "file:"+path+"?mode=ro")
+	if err != nil {
+		return nil, fmt.Errorf("open legacy db: %w", err)
+	}
+	defer db.Close()
+
+	var raw string
+	if err := db.QueryRowContext(ctx,
+		`SELECT u.id FROM users u
+		   JOIN passkeys p ON p.user_id = u.id
+		  GROUP BY u.id ORDER BY count(p.id) DESC LIMIT 1`).Scan(&raw); err != nil {
+		return nil, fmt.Errorf("read legacy user: %w", err)
+	}
+
+	id, err := uuid.Parse(raw)
+	if err != nil {
+		return nil, fmt.Errorf("legacy user id %q is not a UUID: %w", raw, err)
+	}
+	handle := id[:]
+	return handle, nil
 }
 
 func b64(s string) ([]byte, error) {

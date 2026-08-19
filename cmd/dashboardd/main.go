@@ -261,10 +261,24 @@ func importLegacy(args []string) error {
 		return err
 	}
 
+	// Adopt the identity the passkeys were registered against before importing
+	// them. Without this the credentials arrive intact but attached to a user
+	// handle no authenticator has ever seen, and every sign-in is rejected.
+	handle, err := legacy.UserHandle(ctx, args[0])
+	if err != nil {
+		return err
+	}
+	if err := authSvc.SetUserHandle(ctx, handle); err != nil {
+		return err
+	}
+	fmt.Printf("  user handle adopted from the old dashboard (%x)\n", handle)
+
 	imported := 0
 	for _, c := range creds {
 		if err := authSvc.SaveCredential(ctx, userID, c.Name, &c.Cred); err != nil {
-			fmt.Printf("  skipped  %-20s %v\n", c.Name, err)
+			// Already present: re-running the import to repair the handle must
+			// not be an error.
+			fmt.Printf("  present  %-20s (already imported)\n", c.Name)
 			continue
 		}
 		fmt.Printf("  imported %-20s sign count %d\n", c.Name, c.Cred.Authenticator.SignCount)

@@ -16,12 +16,16 @@ import (
 // user adapts the single dashboard account to the webauthn.User interface.
 type user struct {
 	id          string
+	handle      []byte
 	username    string
 	displayName string
 	creds       []webauthn.Credential
 }
 
-func (u *user) WebAuthnID() []byte                         { return []byte(u.id) }
+// WebAuthnID returns the stored user handle. It is deliberately not derived
+// from the row id: authenticators keep this value alongside the credential and
+// return it on every assertion, so it has to survive a rebuild of the database.
+func (u *user) WebAuthnID() []byte                         { return u.handle }
 func (u *user) WebAuthnName() string                       { return u.username }
 func (u *user) WebAuthnDisplayName() string                { return u.displayName }
 func (u *user) WebAuthnCredentials() []webauthn.Credential { return u.creds }
@@ -30,8 +34,8 @@ func (u *user) WebAuthnCredentials() []webauthn.Credential { return u.creds }
 func (s *Service) loadUser(ctx context.Context) (*user, error) {
 	u := &user{}
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, username, display_name FROM users WHERE username = ?`,
-		s.username).Scan(&u.id, &u.username, &u.displayName)
+		`SELECT id, webauthn_id, username, display_name FROM users WHERE username = ?`,
+		s.username).Scan(&u.id, &u.handle, &u.username, &u.displayName)
 	if err != nil {
 		return nil, fmt.Errorf("load user %q: %w", s.username, err)
 	}

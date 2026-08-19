@@ -54,13 +54,41 @@ func New(ctx context.Context, db *store.DB, cfg config.Config) (*Service, error)
 		sessionTTL: cfg.SessionTTL,
 		secure:     cfg.SecureCookies,
 	}
-	if _, err := db.ExecContext(ctx,
-		`INSERT INTO users (id, username, display_name) VALUES (?, ?, ?)
-		 ON CONFLICT(username) DO NOTHING`,
-		newID(), cfg.Username, cfg.Username); err != nil {
-		return nil, fmt.Errorf("ensure user: %w", err)
+	if err := s.ensureUser(ctx, cfg.Username); err != nil {
+		return nil, err
 	}
 	return s, nil
+}
+
+// ensureUser creates the account if it is missing and gives it a user handle
+// if it has none.
+func (s *Service) ensureUser(ctx context.Context, username string) error {
+	handle := make([]byte, 16)
+	if _, err := rand.Read(handle); err != nil {
+		return err
+	}
+	if _, err := s.db.ExecContext(ctx,
+		`INSERT INTO users (id, webauthn_id, username, display_name) VALUES (?, ?, ?, ?)
+		 ON CONFLICT(username) DO NOTHING`,
+		newID(), handle, username, username); err != nil {
+		return fmt.Errorf("ensure user: %w", err)
+	}
+	// A row that predates the handle column gets one now, before any
+	// credential is registered against it.
+	if _, err := s.db.ExecContext(ctx,
+		`UPDATE users SET webauthn_id = ? WHERE username = ? AND webauthn_id IS NULL`,
+		handle, username); err != nil {
+		return fmt.Errorf("backfill user handle: %w", err)
+	}
+	return nil
+}
+
+// SetUserHandle pins the account's WebAuthn user handle. Used by the legacy
+// import to adopt the handle the existing passkeys were registered against.
+func (s *Service) SetUserHandle(ctx context.Context, handle []byte) error {
+	_, err := s.db.ExecContext(ctx,
+		`UPDATE users SET webauthn_id = ? WHERE username = ?`, handle, s.username)
+	return err
 }
 
 // ---------- ceremony state ----------
