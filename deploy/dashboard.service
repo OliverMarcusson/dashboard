@@ -1,25 +1,34 @@
 [Unit]
-Description=Oliver Server Dashboard
-After=network-online.target
+Description=Server dashboard
+Documentation=https://dash.marcusson.dev
+After=network-online.target docker.service
 Wants=network-online.target
 
 [Service]
-Type=simple
-User=dashboard
-Group=dashboard
-WorkingDirectory=/opt/oliver-dashboard/backend
-Environment=DASHBOARD_BIND=127.0.0.1:3000
-Environment=DASHBOARD_DATABASE_URL=sqlite:///var/lib/oliver-dashboard/dashboard.sqlite?mode=rwc
-Environment=DASHBOARD_RP_ID=dash.marcusson.dev
-Environment=DASHBOARD_ORIGIN=https://dash.marcusson.dev
-ExecStart=/usr/local/bin/dashboardd
+Type=exec
+ExecStart=/usr/local/bin/dashboardd serve
 Restart=on-failure
-RestartSec=3
-NoNewPrivileges=true
-PrivateTmp=true
+RestartSec=3s
+
+# Reaches the Docker socket, systemd over D-Bus, and host metrics, so it runs
+# as root — the same privilege the host agent it replaces already held.
+User=root
+StateDirectory=dashboard
+Environment=DASHBOARD_ADDR=127.0.0.1:13000
+Environment=DASHBOARD_DB=/var/lib/dashboard/dashboard.sqlite
+Environment=DASHBOARD_ORIGIN=https://dash.marcusson.dev
+
+# Hardening that does not conflict with what the collectors need.
+NoNewPrivileges=yes
 ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/var/lib/oliver-dashboard
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/dashboard
+ProtectKernelTunables=yes
+ProtectControlGroups=no
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+RestrictSUIDSGID=yes
+LockPersonality=yes
 
 [Install]
 WantedBy=multi-user.target

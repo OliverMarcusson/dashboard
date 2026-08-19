@@ -1,9 +1,0 @@
-{$DASHBOARD_DOMAIN:dash.marcusson.dev} {
-    # For a Tailnet-only public hostname, HTTP-01 may not work from Let's Encrypt.
-    # If needed, build/use a Caddy image with your DNS provider module and enable DNS-01:
-    # tls {
-    #     dns cloudflare {$CLOUDFLARE_API_TOKEN}
-    # }
-
-    reverse_proxy dashboard:3000
-}

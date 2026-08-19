@@ -1,6 +1,8 @@
-target/
-node_modules/
-dist/
-.env
-*.sqlite
-.DS_Store
+# Built frontend, embedded into the binary at build time.
+/internal/api/dist/
+
+# Node
+/web/node_modules/
+
+# Local build output
+/dashboardd
